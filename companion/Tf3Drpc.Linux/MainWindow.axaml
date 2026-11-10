@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:Tf3Drpc.Linux"
+        x:Class="Tf3Drpc.Linux.MainWindow"
+        x:DataType="local:MainWindow"
+        Title="TF3-DRPC — Linux feasibility host"
+        Width="520" Height="320" MinWidth="400" MinHeight="280">
+    <StackPanel Margin="24" Spacing="16">
+        <TextBlock Text="Linux companion: Stage 0" FontSize="22" />
+        <TextBlock Text="Build and desktop feasibility only. No game files or Discord sockets are accessed."
+                   TextWrapping="Wrap" />
+        <TextBlock Text="Compiled binding and Core resource sample:" />
+        <TextBlock Text="{Binding ResourceSample}" TextWrapping="Wrap" />
+        <TextBlock Text="The window stays reachable without a tray. Closing it exits this feasibility host."
+                   TextWrapping="Wrap" />
+        <Button Content="Exit" Click="Exit" AutomationProperties.Name="Exit feasibility host" />
+    </StackPanel>
+</Window>

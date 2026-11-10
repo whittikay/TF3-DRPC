@@ -381,3 +381,10 @@ DATA/
 
 # macOS Finder metadata
 .DS_Store
+
+# Isolated agent worktrees, local SDKs, caches and unsanitised task evidence
+.worktrees/
+.tools/
+.agent-state/
+.local-build/
+.agent-role.md

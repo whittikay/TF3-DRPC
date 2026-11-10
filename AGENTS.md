@@ -14,8 +14,96 @@ introduction for new contributors; both link here for the details instead of rep
 When the code and this file disagree, inspect the code and correct this file. Update it whenever a change makes it stale: new commands,
 framework or dependency changes, structure, workflows, recurring pitfalls.
 
+## Linux fork: multi-agent working agreement
+
+The Linux plan is approved. Read [the plan](docs/linux-implementation-plan.md) and
+[the execution stages](docs/linux-stages.md) before implementation. Linux support is
+in development, not released. Keep the existing Windows/macOS behaviour and mod protocol.
+This section takes precedence over older MAUI-only and stacked-PR assumptions below for
+Linux work; all other safety, style, privacy and Native AOT rules still apply.
+
+### Roles and ownership
+
+- **Astra:** coordinator/integrator; owns architecture, shared interfaces, toolchain,
+  package/project/solution files, CI and the stage ledger. Initially implements Stage 0,
+  then the shared application seam and Discord transport work.
+- **GPT-Sol:** independent implementation and review; initially reviews Stage 0, later
+  owns Linux Steam/path/process integration. Reviews Astra's changes; Astra reviews Sol's.
+- **Qwen:** bounded tests, synthetic fixtures, edge-case investigations, documentation
+  and small utilities against approved contracts. Initially prepares the acceptance matrix.
+- Roles are starting assignments, not assumptions about model capability. Reassign after
+  observed results. One agent owns the Avalonia UI at a time; no parallel UI rewrites.
+- A task grants write access only to its listed paths. Ask Astra before expanding scope.
+  Shared configuration and dependencies have one owner even across separate worktrees.
+
+### Worktree isolation and integration
+
+- Each agent uses its own branch and Git worktree. Astra uses the primary checkout;
+  Sol and Qwen use `.worktrees/sol` and `.worktrees/qwen`. Do not nest more worktrees in
+  a worker checkout. The directories are ignored; Git metadata is shared, working files
+  and build output are not. Never switch another agent's branch or edit its checkout.
+- Read another checkout only for an assigned review. Build and test your own checkout;
+  explicitly identify the revision or uncommitted snapshot actually tested.
+- Uncommitted changes do not travel with branches. Until commits are authorised, Astra
+  supplies a named bootstrap snapshot and per-worktree checksum manifest. Preserve those
+  files and report only changes beyond that snapshot. Never assume `HEAD` contains them.
+- No commits, merges, rebases, pushes, PR submissions or releases without explicit user
+  authorisation for that action. The upstream `gh stack` commands below are reference,
+  not permission to execute them. Do not install extensions or change repository rulesets.
+- Astra integrates only independently reviewed, in-scope changes after checking the
+  current diff. Never copy an entire worker checkout over the integration tree. Do not
+  reset, stash, clean or discard another agent's changes. Resolve shared-file conflicts
+  by agreement rather than last-writer-wins.
+- SDKs/caches stay project-local and ignored. Never alter global SDKs, workloads, desktop
+  settings, Discord configuration or installed packages without specific approval.
+  Build outputs and NuGet caches are separate per worktree; a verified SDK may be shared
+  read-only. No concurrent workload installations into a shared SDK.
+
+### Task handoffs and review loop
+
+Each task must name: stage/task ID, base snapshot, objective, non-goals, owner/reviewer,
+allowed files, agreed interfaces, acceptance checks, dependencies and stop conditions.
+Return changed paths, commands actually run with outcomes, unresolved risks and anything
+not verified. Never equate a proposed command with a completed test.
+
+Work in small increments: implement → automated checks → independent review → targeted
+fixes → recheck → integration. An author does not approve their own work. Review findings
+need severity, file/line, a concrete failure scenario and a test or reproduction where
+possible. Review the actual diff and contracts, not just the author's summary. Recheck
+changed findings; avoid repeating an unchanged full review. After two failed correction
+cycles, stop and reconsider the design with the coordinator.
+
+Stage 0 is a go/no-go gate: do not start the full UI or shared extraction before the
+SDK, Native AOT, resources and desktop spike have been evaluated. Use source-generated
+JSON/logging, compiled XAML/bindings, no reflection or LINQ in production code, one monitor
+loop and explicit lifecycle management. No warning suppression to make AOT appear viable.
+The Linux host uses Avalonia; Windows/macOS retain MAUI. No Generic Host or second daemon.
+
+### Validation and permissions
+
+- Core and application tests must not discover a live Discord socket. Use test-owned
+  synthetic fixtures; never publish activity during normal test/CI runs.
+- Live Discord tests, game launches/mod activation and changes outside the active project
+  require specific user approval. Never screenshot Discord or collect its credentials.
+- READY means IPC connected, not visible activity. End-to-end presence and store-button
+  checks require separately reported manual evidence.
+- Gate changes with Debug/Release builds, tests, analysers and a Native AOT publish.
+  Windows/macOS need their own runners; headless Linux tests do not certify tray hosts,
+  Wayland, accessibility, game behaviour or sandbox/client interoperability.
+- Prioritise wrong-client routing, timeouts/cancellation, stale logs, process identity,
+  tray-less recovery, pending settings on exit and published translations in reviews.
+- Report blockers rather than changing SDK/framework pins, broadening filesystem access,
+  installing bridges or weakening portability/security requirements without review.
+- Keep public reports sanitised as required by Security & Configuration below. Raw build
+  logs and bootstrap manifests containing machine paths stay in ignored local storage.
+
 ## Quick Reference
 
+- Linux Stage 0 (from the checkout root): `./tools/linux-dotnet.sh build TF3-DRPC.Linux.slnx`
+  and `./tools/linux-dotnet.sh test --project Tf3Drpc.Core.Tests/Tf3Drpc.Core.Tests.csproj`.
+  Publish: `./tools/linux-dotnet.sh publish Tf3Drpc.Linux/Tf3Drpc.Linux.csproj -c Release -r linux-x64`.
+  This is a feasibility host, not a working companion. See [the stage ledger](docs/linux-stages.md)
+  for the local SDK, workload-resolver scope, per-worktree caches and published smoke modes.
 - Link the mod into the game's staging area (Windows and macOS): `./tools/install-mod.ps1` (`-Remove`
   unlinks it)
 - Companion app, run from `companion/` (where `global.json` and the solution are):
@@ -182,8 +270,9 @@ Fix a finding, or suppress it narrowly with a real justification.
 
 ### Architecture patterns
 
-- **DI and logging** through MAUI's `MauiAppBuilder`; no separate Generic Host and no
-  hosted services. Background work runs in the one loop of `IMonitorService`.
+- **DI and logging:** the existing MAUI host uses `MauiAppBuilder`; the Linux Avalonia
+  host uses explicit composition. No separate Generic Host and no hosted services.
+  Background work runs in the one loop of `IMonitorService`.
 - **Services** behind an **interface**: interface in `Services/Interfaces/`, implementation
   in `Services/`, injected through primary constructors. The services do the work; the UI
   only presents.
@@ -219,7 +308,8 @@ Non-negotiable in the companion app and `Tf3Drpc.Core` (the tests are exempt):
   level, then by logger class), never `LogInformation` and the like; regex only as
   `[GeneratedRegex]` partial properties with a match timeout in `Utilities/RegexUtils.cs`,
   used through its helper methods; native calls through `[LibraryImport]`; ViewModels through
-  CommunityToolkit.Mvvm; XAML through MAUI's source generator.
+  CommunityToolkit.Mvvm; XAML through MAUI's source generator or Avalonia's compiled XAML
+  with compiled bindings in the Linux host.
 - Format invariant data with `string.Create(CultureInfo.InvariantCulture, $"...")`.
 - Detect the build with `#if DEBUG`, not runtime environment checks.
 - Every trim or AOT warning is fixed, never suppressed. Known exception, not ours and not

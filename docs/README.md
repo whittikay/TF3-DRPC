@@ -46,6 +46,8 @@ API for native extensions.
 | [presence.md](presence.md) | what Discord shows, texts and languages |
 | [testing.md](testing.md) | how to test with the game and Discord, where to look, known traps |
 | [platform-parity.md](platform-parity.md) | what differs between Windows and macOS, and what is decided for each difference |
+| [linux-implementation-plan.md](linux-implementation-plan.md) | approved Linux companion implementation plan; support is in development |
+| [linux-stages.md](linux-stages.md) | execution stages, agent worktrees/handoffs, Linux spike commands and observed validation |
 | [log-samples/](log-samples/) | real game log lines for the parser tests |
 
 What the project does for players is in the [README](../README.md); how to contribute is in

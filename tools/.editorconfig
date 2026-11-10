@@ -1,0 +1,3 @@
+# Unix entry points override the repository's default CRLF policy.
+[linux-dotnet.sh]
+end_of_line = lf

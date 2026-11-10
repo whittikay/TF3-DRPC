@@ -1,0 +1,22 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Tf3Drpc.Linux.App"
+             RequestedThemeVariant="Default">
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    <Application.Resources>
+        <TrayIcon x:Key="SpikeTrayIcon"
+                  Icon="avares://Tf3Drpc.Linux/Assets/tray.ico"
+                  ToolTipText="TF3-DRPC Linux feasibility host"
+                  IsVisible="True"
+                  Clicked="ShowWindow">
+            <TrayIcon.Menu>
+                <NativeMenu>
+                    <NativeMenuItem Header="Show window" Click="ShowWindow" />
+                    <NativeMenuItem Header="Exit" Click="Exit" />
+                </NativeMenu>
+            </TrayIcon.Menu>
+        </TrayIcon>
+    </Application.Resources>
+</Application>

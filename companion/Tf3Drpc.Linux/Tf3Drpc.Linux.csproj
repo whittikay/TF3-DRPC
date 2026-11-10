@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Stage 0 desktop feasibility host; not yet the game companion. -->
+  <PropertyGroup>
+    <AssemblyName>Tf3Drpc.Linux</AssemblyName>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <IsAotCompatible>true</IsAotCompatible>
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+    <RootNamespace>Tf3Drpc.Linux</RootNamespace>
+    <SelfContained>true</SelfContained>
+    <TargetFramework>net11.0</TargetFramework>
+    <!-- .NET 11's optimised AOT publish bypasses Avalonia's post-compilation XAML step. -->
+    <UseOptimizedPublish>false</UseOptimizedPublish>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tf3Drpc.Core\Tf3Drpc.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="..\Tf3Drpc.App\Resources\Tray\tray.ico" Link="Assets\tray.ico" />
+  </ItemGroup>
+
+  <!-- Native AOT must include the referenced Core's translated resources. -->
+  <Target Name="AddReferenceSatellitesToIlc" AfterTargets="_ComputeIlcCompileInputs" BeforeTargets="ComputeIlcCompileInputs">
+    <ItemGroup>
+      <IlcSatelliteAssembly Include="@(ReferenceSatellitePaths)" Exclude="@(IlcSatelliteAssembly)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -7,3 +7,9 @@ docs/log-samples/*.log -text
 
 # swift-format misreads CRLF (it moves comments and blank lines), so Swift sources stay LF.
 *.swift text eol=lf
+
+# C# analysers require CRLF on every host; avoid Linux checkout-only warnings.
+*.cs text eol=crlf
+
+# Linux build entry points must be executable by a Unix shell.
+tools/linux-dotnet.sh text eol=lf
