@@ -33,6 +33,10 @@ Linux work; all other safety, style, privacy and Native AOT rules still apply.
   and small utilities against approved contracts. Initially prepares the acceptance matrix.
 - Roles are starting assignments, not assumptions about model capability. Reassign after
   observed results. One agent owns the Avalonia UI at a time; no parallel UI rewrites.
+- **Identity check:** before acting on a task, each session checks which model is active in
+  pi (`env | grep '^PI_'` shows `PI_MODEL` and `PI_PROVIDER`) and maps it to its role above;
+  the user may reassign roles at any time. If the active model does not match the assumed
+  role, stop and confirm with the user before making task-owned edits.
 - A task grants write access only to its listed paths. Ask Astra before expanding scope.
   Shared configuration and dependencies have one owner even across separate worktrees.
 
@@ -104,6 +108,10 @@ The Linux host uses Avalonia; Windows/macOS retain MAUI. No Generic Host or seco
   Publish: `./tools/linux-dotnet.sh publish Tf3Drpc.Linux/Tf3Drpc.Linux.csproj -c Release -r linux-x64`.
   This is a feasibility host, not a working companion. See [the stage ledger](docs/linux-stages.md)
   for the local SDK, workload-resolver scope, per-worktree caches and published smoke modes.
+  The feasibility host's tray menu offers Show window, Hide to tray and Exit. Hide checks
+  the StatusNotifier host through the existing Tmds.DBus.Protocol dependency; while hidden,
+  a bounded UI-lifecycle check restores the window if the host becomes unavailable. This
+  is not the game monitor loop. Normal window close and the window's Exit button still quit.
 - Link the mod into the game's staging area (Windows and macOS): `./tools/install-mod.ps1` (`-Remove`
   unlinks it)
 - Companion app, run from `companion/` (where `global.json` and the solution are):

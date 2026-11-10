@@ -14,6 +14,7 @@
             <TrayIcon.Menu>
                 <NativeMenu>
                     <NativeMenuItem Header="Show window" Click="ShowWindow" />
+                    <NativeMenuItem Header="Hide to tray" Click="HideWindowAsync" />
                     <NativeMenuItem Header="Exit" Click="Exit" />
                 </NativeMenu>
             </TrayIcon.Menu>

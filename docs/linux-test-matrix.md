@@ -178,6 +178,22 @@ This integrated copy includes Astra's review corrections and Sol's S0 evidence.
   (labels, focus order, contrast). Expected: all controls announced; Exit reachable by
   keyboard. Level H · Stage 0 / Sol · **Not run**.
 
+- **DT-07 Explicit hide and synthetic tray-loss recovery (A0-T follow-up).**
+  Prerequisite: published native follow-up binary, XWayland, and a private test-owned
+  D-Bus session with a synthetic StatusNotifier watcher. Steps: invoke the app's
+  exported tray menu to hide; change the synthetic host availability property to false;
+  repeat after restoration with the watcher unresponsive, then with its bus name gone.
+  Check matching X11 window/PID state after each transition. Expected: a hidden window
+  reappears within five seconds, the process stays alive, unavailable hosts prevent
+  hiding, and tray Exit still terminates cleanly after recovery. Never pause or stop
+  the user's real tray host.
+  Level A · Stage 0 / Astra · **Passed** (nine assertions in isolated-session experiment;
+  user separately confirmed manual Hide/Show/Exit on the real Arch/niri tray).
+  Independent review completed by Qwen (user-reassigned from Sol) against a
+  hash-verified snapshot, including fresh 14-assertion recovery/race runs; verdict:
+  pass, scoped to Arch/niri/XWayland. This does not replace
+  a real tray-less-desktop or screen-reader result.
+
 ## 4 Backends and portability (BE)
 
 - **BE-01 X11/XWayland route.** Prerequisite: one X11 session and one Wayland session

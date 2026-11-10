@@ -8,7 +8,7 @@ not yet released. Stage numbers match the plan, not completion percentages.
 
 | Stage | Work and owner | Independent reviewer | Prerequisite | Exit gate | Status |
 |---|---|---|---|---|---|
-| **0 — Toolchain and desktop feasibility** | Astra: pinned SDK, Linux build entry point, Core baseline, Avalonia/AOT/resource/tray spike. Qwen: acceptance matrix | Sol | Approved plan | Reproducible build/tests/publish; resources work in native binary; desktop/tray/backend and baseline-distro checks; review findings resolved | **In progress — gate blocked**: S0 independent review and Q0 acceptance design complete; baseline-distro and desktop evidence pending |
+| **0 — Toolchain and desktop feasibility** | Astra: pinned SDK, Linux build entry point, Core baseline, Avalonia/AOT/resource/tray spike. Qwen: acceptance matrix | Sol (S0), Qwen for the A0-T hide-to-tray follow-up (user-reassigned) | Approved plan | Reproducible build/tests/publish; resources work in native binary; desktop/tray/backend and baseline-distro checks; review findings resolved | **Closed — go, scoped to Arch/niri/XWayland** on 2026-11-10: S0 review plus Qwen's independent hide-to-tray review passed; user selected Arch/niri as the baseline target. Screen-reader, tray-less-desktop, native-Wayland and other-distro checks remain unverified and are Stage 5/6 work, not claims |
 | **1 — Shared application seam** | Astra: extract UI-neutral services, messages and presentation logic; define dispatch/timer/launcher/lifecycle contracts. Qwen: regression tests | Sol | Stage 0 go decision | Behaviour-preserving extraction; no new warnings; Core/application tests and Windows/macOS publish checks | Not started |
 | **2 — Discord IPC** | Astra: candidate discovery, explicit selection, handshake failover, deadlines and diagnostics. Qwen: synthetic socket fixtures/tests in assigned files | Sol | Stage 1 contracts | Bad early endpoints cannot mask healthy ones; cancellation and routing tests; no automatic live socket access | Not started |
 | **3 — Linux game integration** | Sol: Steam roots/VDF/manifests, secondary libraries, native process identity, overrides and Proton handling. Qwen: assigned path/process fixtures | Astra | Stage 1 contracts; can run alongside Stage 2 | Native game and secondary-library session verified; stale/racy process/log tests; actual Proton check before claiming Proton support | Not started |
@@ -100,6 +100,11 @@ window and exits three seconds after its Opened event. Both GUI commands require
 session. `--no-tray` deliberately skips tray attachment, but does not simulate every
 tray-less desktop. Closing the window always exits this spike so it cannot become hidden
 and unreachable. Without `--smoke-test` the host stays open for manual examination.
+The tray's **Hide to tray** action hides rather than minimises the window, which works
+with niri. It only hides after a bounded D-Bus check confirms a registered StatusNotifier
+host. While hidden, a one-second UI timer rechecks availability (each probe has a
+one-second deadline); loss or failure restores the window. This timer stops when shown
+or exiting and does not start a game monitor. `--no-tray` retains a visible window.
 Invalid arguments return exit code 2. These modes never publish a Discord activity.
 
 Build notes:
@@ -205,6 +210,79 @@ The local commit records the reviewed feasibility implementation and evidence on
 Stage 1 remains blocked. Worker branches still retain their original bootstrap base;
 reconciliation with a committed baseline needs an explicit follow-up and must preserve
 worker files rather than reset or overwrite their checkouts.
+
+## A0-T — explicit hide-to-tray follow-up
+
+The user requested hide-to-tray after validating the committed spike on Arch/niri.
+Owner: Astra; reviewer: Qwen (user-reassigned from Sol on 2026-11-10 after the
+active model was checked via `PI_MODEL`; see the identity-check note in AGENTS.md).
+Base: local commit `df91364`.
+Scope: Linux host, its existing D-Bus dependency reference, AGENTS and these validation
+notes. No game/Discord transport, settings, start-hidden option or close-to-tray change.
+This follow-up is uncommitted and needs independent review before integration.
+
+The host now explicitly references Tmds.DBus.Protocol 0.94.1, already resolved by
+Avalonia, without changing its version. Its tray menu can hide the window; Show window
+restores it; Exit and normal window close still quit. A bounded read-only watcher
+property query rejects hiding without a registered host. While hidden, availability
+checks restore the window after a failed probe. A positive watcher property is not
+proof of visibility on every desktop, so manual menu and recovery checks remain required.
+
+Checks run in the primary checkout: Debug/Release builds (0 warnings/errors), Core tests
+in both configurations (650 passed, 3 skipped), Native AOT publish (no reported warnings),
+and native resource check (13 languages), all successful. Both published startup smoke
+modes exited 0. An ignored source-linked probe verified present-host, cancelled-call,
+unreachable-session-bus and malformed-address cases within its time bound. No tray host
+was stopped and no desktop settings were changed. The user confirmed Hide to tray kept
+the icon available, Show window restored the hidden window, and tray Exit quit afterward.
+The recorded host was no longer running after Exit; its log contained no exception.
+
+Synthetic recovery was subsequently validated against the published native binary in a
+private test-owned D-Bus session, using an existing Python D-Bus/GLib installation and
+an isolated synthetic StatusNotifier watcher. All nine assertions passed: initially
+visible; hide with an available host; restore within five seconds when the host reports
+unavailable; refuse hide while unavailable; hide after availability returns; restore
+within five seconds when the watcher stops responding; hide after responsiveness returns;
+restore within five seconds when the watcher exits; clean tray Exit after recovery.
+X11 window state and matching process identity were checked, not just startup exit codes.
+Only the synthetic watcher was paused/terminated; the real tray and desktop settings were
+untouched. All test-owned processes were cleaned up. Fixture scripts and raw results
+remain ignored under `.agent-state/hide-to-tray/recovery/`.
+An author recheck repeated all nine assertions in fresh fixture directories and also
+verified Show superseding a pending Hide, clean Exit during pending Hide, and visible
+window recovery after loss of the entire private session bus. Debug/Release builds,
+Core tests, AOT publish and the resource check were re-run successfully. This remains
+an author recheck, not independent approval. The targeted
+[S0-T handoff](agent-handoffs/sol-hide-to-tray.md) records the snapshot and review scope.
+
+Qwen completed the independent review in its worktree against a hash-verified
+disposable snapshot of `df91364` plus the 11 follow-up files: Debug/Release builds,
+Core tests (650 passed, 3 known skips per configuration), AOT publish, the 13-language
+resource check and 14 fresh synthetic recovery/race assertions all passed against its
+review-published binary; findings are informational only. Verdict:
+**pass, scoped to Arch/niri/XWayland** (report in Qwen's worktree,
+`reviews/linux/stage-0/qwen-hide-to-tray-review.md`).
+
+**Stage 0 closure.** On 2026-11-10 the user directed this session (Qwen, active model
+verified via `PI_MODEL`) to execute the closure and local commit from it, overriding the
+"only Astra updates this ledger" note for this one entry; the user had earlier
+authorised the conditional commit if all checks passed. Stage 0 is closed with a **go
+decision scoped to Arch/niri/XWayland**: the pinned SDK builds workload-free, Native AOT
+publishes without warnings, resources work in the native binary, and the desktop/tray/
+backend evidence above holds on the user's selected baseline. Explicitly not claimed:
+screen-reader access, a genuine tray-less desktop, native Wayland and any other
+distribution; BL-07 (missing-satellite negative control) remains an open Astra
+follow-up with its separate bounded design. Stage 1 may start from this go decision;
+no push was made and none is authorised.
+
+Before this follow-up, the user confirmed the committed host's rendered German sample,
+tray visibility, Show window focus, tray Exit, window Exit, normal close, and visible
+Tab focus plus Enter activation. Each exit was followed by a process-stopped check.
+The app's X11 properties matched the launched PID/class, confirming the XWayland route
+on niri. Screen-reader access was not tested (none configured); a genuine tray-less
+desktop and native Wayland were not tested. The user selected Arch/niri as the immediate
+validation target rather than Ubuntu; no other distro support is inferred and the
+Stage 0 gate is not closed by this narrower local evidence.
 
 ## Task report template
 

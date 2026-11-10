@@ -11,7 +11,7 @@
                    TextWrapping="Wrap" />
         <TextBlock Text="Compiled binding and Core resource sample:" />
         <TextBlock Text="{Binding ResourceSample}" TextWrapping="Wrap" />
-        <TextBlock Text="The window stays reachable without a tray. Closing it exits this feasibility host."
+        <TextBlock Text="Use the tray menu to hide this window. Closing it exits. If the tray host is unavailable, the window stays visible."
                    TextWrapping="Wrap" />
         <Button Content="Exit" Click="Exit" AutomationProperties.Name="Exit feasibility host" />
     </StackPanel>
