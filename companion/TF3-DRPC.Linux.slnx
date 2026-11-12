@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="Tf3Drpc.Application/Tf3Drpc.Application.csproj" />
+  <Project Path="Tf3Drpc.Application.Tests/Tf3Drpc.Application.Tests.csproj" />
   <Project Path="Tf3Drpc.Core/Tf3Drpc.Core.csproj" />
   <Project Path="Tf3Drpc.Core.Tests/Tf3Drpc.Core.Tests.csproj" />
   <Project Path="Tf3Drpc.Linux/Tf3Drpc.Linux.csproj" />

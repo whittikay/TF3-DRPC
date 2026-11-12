@@ -21,7 +21,7 @@ namespace Tf3Drpc.App;
 /// The MAUI application: one hidden settings window, the tray icon and the monitor loop.
 /// </summary>
 #pragma warning disable CA1812 // Avoid uninstantiated internal classes
-internal sealed partial class CompanionApplication : Application, IRecipient<SettingsChangedMessage>
+internal sealed partial class CompanionApplication : Microsoft.Maui.Controls.Application, IRecipient<SettingsChangedMessage>
 #pragma warning restore CA1812
 {
     private readonly IServiceProvider _services;

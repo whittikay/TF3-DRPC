@@ -7,21 +7,19 @@ using CommunityToolkit.Mvvm.Messaging;
 
 using Microsoft.Extensions.Logging;
 
-using Tf3Drpc.App.Constants;
-using Tf3Drpc.App.Logging;
-using Tf3Drpc.App.Messages;
-using Tf3Drpc.App.Services.Interfaces;
+using Tf3Drpc.Application.Constants;
+using Tf3Drpc.Application.Logging;
+using Tf3Drpc.Application.Messages;
+using Tf3Drpc.Application.Services.Interfaces;
 using Tf3Drpc.Core.Monitor;
 using Tf3Drpc.Core.Structs;
 
-namespace Tf3Drpc.App.Services;
+namespace Tf3Drpc.Application.Services;
 
 /// <summary>
 /// Runs the one background loop that drives the <see cref="GameMonitor"/> and sends its status changes.
 /// </summary>
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
-internal sealed class MonitorService : IMonitorService
-#pragma warning restore CA1812
+public sealed class MonitorService : IMonitorService
 {
     private readonly GameMonitor _monitor;
     private readonly IMessenger _messenger;
@@ -33,12 +31,12 @@ internal sealed class MonitorService : IMonitorService
 #pragma warning disable IDE0290 // Use primary constructor: it cannot take its parameter list on separate lines
     public MonitorService
     (
-        IGameProcessService processService,
-        IPathService pathService,
-        ISettingsService settingsService,
-        ITranslationService translationService,
-        IPresenceService presenceService,
-        IDiscordService discordService,
+        IGameProcessSource processService,
+        IGamePathResolver pathService,
+        ISettingsSource settingsService,
+        ILanguageResolver translationService,
+        IPresenceBuilder presenceService,
+        IPresenceSink discordService,
         IMessenger messenger,
         TimeProvider timeProvider,
         ILoggerFactory loggerFactory
@@ -82,7 +80,7 @@ internal sealed class MonitorService : IMonitorService
 
     private async Task RunAsync(CancellationToken cancellationToken)
     {
-        using PeriodicTimer timer = new(AppConstants.TickInterval, _timeProvider);
+        using PeriodicTimer timer = new(ApplicationMonitorConstants.TickInterval, _timeProvider);
 
         try
         {

@@ -5,12 +5,12 @@ using Tf3Drpc.Core.Languages;
 using Tf3Drpc.Core.Monitor;
 using Tf3Drpc.Core.Translation;
 
-namespace Tf3Drpc.App.Services.Interfaces;
+namespace Tf3Drpc.Application.Services.Interfaces;
 
 /// <summary>
 /// The game's texts, the app's own texts and the languages.
 /// </summary>
-internal interface ITranslationService : ILanguageResolver
+public interface ITranslationService : ILanguageResolver
 {
     /// <summary>
     /// The 13 languages.

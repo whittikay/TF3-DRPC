@@ -62,7 +62,5 @@ internal static class AppConstants
 
     public static readonly TimeSpan TemplateSaveDelay = TimeSpan.FromSeconds(1);
 
-    public static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
-
     public static readonly TimeSpan TranslationRetryInterval = TimeSpan.FromSeconds(30);
 }

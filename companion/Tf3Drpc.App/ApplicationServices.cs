@@ -1,0 +1,10 @@
+global using IPresenceService = Tf3Drpc.Application.Services.Interfaces.IPresenceService;
+global using ISettingsService = Tf3Drpc.Application.Services.Interfaces.ISettingsService;
+global using ITranslationService = Tf3Drpc.Application.Services.Interfaces.ITranslationService;
+global using PresenceService = Tf3Drpc.Application.Services.PresenceService;
+global using SettingsService = Tf3Drpc.Application.Services.SettingsService;
+global using SettingsChangedMessage = Tf3Drpc.Application.Messages.SettingsChangedMessage;
+global using ISettingsPaths = Tf3Drpc.Application.Services.Interfaces.ISettingsPaths;
+global using IMonitorService = Tf3Drpc.Application.Services.Interfaces.IMonitorService;
+global using MonitorService = Tf3Drpc.Application.Services.MonitorService;
+global using AppStatusChangedMessage = Tf3Drpc.Application.Messages.AppStatusChangedMessage;

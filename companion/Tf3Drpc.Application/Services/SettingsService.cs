@@ -4,24 +4,22 @@ using CommunityToolkit.Mvvm.Messaging;
 
 using Microsoft.Extensions.Logging;
 
-using Tf3Drpc.App.Logging;
-using Tf3Drpc.App.Messages;
-using Tf3Drpc.App.Services.Interfaces;
+using Tf3Drpc.Application.Logging;
+using Tf3Drpc.Application.Messages;
+using Tf3Drpc.Application.Services.Interfaces;
 using Tf3Drpc.Core.Enums;
 using Tf3Drpc.Core.Languages;
 using Tf3Drpc.Core.Presence;
 using Tf3Drpc.Core.Settings;
 
-namespace Tf3Drpc.App.Services;
+namespace Tf3Drpc.Application.Services;
 
 /// <summary>
 /// Keeps the settings in memory and saves them to <c>DATA/settings.json</c> when they change.
 /// </summary>
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
-internal sealed class SettingsService(IPathService paths, IMessenger messenger, ILogger<SettingsService> logger) : ISettingsService
-#pragma warning restore CA1812
+public sealed class SettingsService(ISettingsPaths paths, IMessenger messenger, ILogger<SettingsService> logger) : ISettingsService
 {
-    private readonly IPathService _paths = paths;
+    private readonly ISettingsPaths _paths = paths;
     private readonly IMessenger _messenger = messenger;
     private readonly ILogger<SettingsService> _logger = logger;
 

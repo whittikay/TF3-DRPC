@@ -1,6 +1,6 @@
 using System;
 
-using Tf3Drpc.App.Services.Interfaces;
+using Tf3Drpc.Application.Services.Interfaces;
 using Tf3Drpc.Core.Constants;
 using Tf3Drpc.Core.Enums;
 using Tf3Drpc.Core.Languages;
@@ -8,14 +8,12 @@ using Tf3Drpc.Core.Presence;
 using Tf3Drpc.Core.Settings;
 using Tf3Drpc.Core.Structs;
 
-namespace Tf3Drpc.App.Services;
+namespace Tf3Drpc.Application.Services;
 
 /// <summary>
 /// Builds the presence and its preview with the game's current texts and the settings (preset, templates, store button).
 /// </summary>
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
-internal sealed class PresenceService(ITranslationService translation, ISettingsService settings, TimeProvider timeProvider) : IPresenceService
-#pragma warning restore CA1812
+public sealed class PresenceService(ITranslationService translation, ISettingsService settings, TimeProvider timeProvider) : IPresenceService
 {
     private readonly ITranslationService _translation = translation;
     private readonly ISettingsService _settings = settings;

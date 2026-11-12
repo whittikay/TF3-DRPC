@@ -2,12 +2,12 @@ using Tf3Drpc.Core.Enums;
 using Tf3Drpc.Core.Monitor;
 using Tf3Drpc.Core.Settings;
 
-namespace Tf3Drpc.App.Services.Interfaces;
+namespace Tf3Drpc.Application.Services.Interfaces;
 
 /// <summary>
 /// The app's settings.
 /// </summary>
-internal interface ISettingsService : ISettingsSource
+public interface ISettingsService : ISettingsSource
 {
     /// <summary>
     /// Tells whether the data folder was writable when last probed; a save probes it again when it wasn't.

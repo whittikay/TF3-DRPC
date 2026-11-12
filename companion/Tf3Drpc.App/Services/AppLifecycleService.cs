@@ -39,6 +39,6 @@ internal sealed class AppLifecycleService(IMonitorService monitor, IDiscordServi
     private void RaiseExitingAndQuit()
     {
         Exiting?.Invoke(this, EventArgs.Empty);
-        Application.Current?.Quit();
+        Microsoft.Maui.Controls.Application.Current?.Quit();
     }
 }

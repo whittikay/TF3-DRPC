@@ -92,6 +92,9 @@ The Linux host uses Avalonia; Windows/macOS retain MAUI. No Generic Host or seco
 - READY means IPC connected, not visible activity. End-to-end presence and store-button
   checks require separately reported manual evidence.
 - Gate changes with Debug/Release builds, tests, analysers and a Native AOT publish.
+  For the current Stage 1 work, the user has excluded native Windows/macOS validation
+  from scope: record it as unverified, not a local integration blocker. Preserve their
+  source behaviour; do not infer platform compatibility from Linux checks.
   Windows/macOS need their own runners; headless Linux tests do not certify tray hosts,
   Wayland, accessibility, game behaviour or sandbox/client interoperability.
 - Prioritise wrong-client routing, timeouts/cancellation, stale logs, process identity,
@@ -103,6 +106,17 @@ The Linux host uses Avalonia; Windows/macOS retain MAUI. No Generic Host or seco
 
 ## Quick Reference
 
+- Stage 1 shared application seam: `companion/Tf3Drpc.Application/` contains the extracted
+  presence/preview service, settings persistence, the single monitor loop, settings/status
+  messages and public service contracts. MAUI resolves shared types through `ApplicationServices.cs`
+  aliases; translation remains in the host. Its path service supplies the shared
+  `ISettingsPaths` contract using the same instance registered as `IPathService`. The MAUI
+  monitor factory supplies its existing services through Core's source/sink interfaces.
+  Both solutions include the shared project and its xunit v3 test
+  project. From the checkout root run
+  `./tools/linux-dotnet.sh test --project Tf3Drpc.Application.Tests/Tf3Drpc.Application.Tests.csproj`.
+  The Linux feasibility host does not yet compose these services; its AOT publish alone
+  does not validate the extracted application code. See `docs/agent-handoffs/astra-stage1.md`.
 - Linux Stage 0 (from the checkout root): `./tools/linux-dotnet.sh build TF3-DRPC.Linux.slnx`
   and `./tools/linux-dotnet.sh test --project Tf3Drpc.Core.Tests/Tf3Drpc.Core.Tests.csproj`.
   Publish: `./tools/linux-dotnet.sh publish Tf3Drpc.Linux/Tf3Drpc.Linux.csproj -c Release -r linux-x64`.
@@ -378,9 +392,11 @@ rename an identifier only for the spelling.
 - A change to the companion app is validated with a build in Debug and Release, the tests,
   the analyser output, a publish and, for behaviour, a run with the game and the Discord
   client ([docs/testing.md](docs/testing.md)).
-- Logic that can be tested belongs in `Tf3Drpc.Core`, because the tests can't reference the
-  MAUI app. The monitor's tick lives in Core's `GameMonitor` and is tested there; only the
-  timer loop and the messenger stay in the app.
+- Domain logic belongs in `Tf3Drpc.Core`; UI-neutral application orchestration is being
+  extracted into `Tf3Drpc.Application` with its own tests. Neither test project references
+  MAUI. The monitor's tick lives in Core's `GameMonitor` and is tested there; the timer
+  loop and settings/status messages live in Application. MAUI supplies the shared
+  messenger and platform adapters; the shared loop uses injected TimeProvider timers.
 
 ## Security & Configuration
 

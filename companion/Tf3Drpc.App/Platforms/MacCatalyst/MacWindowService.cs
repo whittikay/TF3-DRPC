@@ -112,7 +112,7 @@ internal sealed class MacWindowService : IWindowService
         // The title bar is AppKit's and doesn't follow UserAppTheme; a light theme on a dark system drew a white title on it.
         ApplyAppearance();
 
-        if (Application.Current is Application application)
+        if (Microsoft.Maui.Controls.Application.Current is Microsoft.Maui.Controls.Application application)
             application.RequestedThemeChanged += OnRequestedThemeChanged;
 
         // The native title bar shows the window title; the version goes below it, as the Windows title bar shows it.
@@ -152,7 +152,7 @@ internal sealed class MacWindowService : IWindowService
     // The window's own appearance, so the native title bar matches the theme; none follows the system.
     private void ApplyAppearance()
     {
-        string? name = Application.Current?.UserAppTheme switch
+        string? name = Microsoft.Maui.Controls.Application.Current?.UserAppTheme switch
         {
             AppTheme.Light => LightAppearance,
             AppTheme.Dark => DarkAppearance,

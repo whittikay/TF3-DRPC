@@ -3,6 +3,7 @@ using System;
 using CommunityToolkit.Mvvm.Messaging;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using Tf3Drpc.App.Services;
 using Tf3Drpc.App.Services.Interfaces;
@@ -29,6 +30,7 @@ internal static class ServiceCollectionExtensions
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             services.AddSingleton<IPathService>(pathService);
+            services.AddSingleton<ISettingsPaths>(pathService);
             services.AddSingleton<ISingleInstanceService>(singleInstanceService);
             services.AddSingleton<IWindowService>(windowService);
             services.AddSingleton<IGameProcessService, GameProcessService>();
@@ -40,7 +42,18 @@ internal static class ServiceCollectionExtensions
             services.AddSingleton<IPresenceService, PresenceService>();
 
             // IMonitorService depends on all of the above
-            services.AddSingleton<IMonitorService, MonitorService>();
+            services.AddSingleton<IMonitorService>(static provider => new MonitorService
+            (
+                provider.GetRequiredService<IGameProcessService>(),
+                provider.GetRequiredService<IPathService>(),
+                provider.GetRequiredService<ISettingsService>(),
+                provider.GetRequiredService<ITranslationService>(),
+                provider.GetRequiredService<IPresenceService>(),
+                provider.GetRequiredService<IDiscordService>(),
+                provider.GetRequiredService<IMessenger>(),
+                provider.GetRequiredService<TimeProvider>(),
+                provider.GetRequiredService<ILoggerFactory>()
+            ));
 
             // These services control the monitor
             services.AddSingleton<IAppLifecycleService, AppLifecycleService>();

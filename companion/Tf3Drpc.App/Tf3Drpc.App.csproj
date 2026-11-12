@@ -93,6 +93,7 @@
   <!-- Shared Projects -->
   <ItemGroup>
     <ProjectReference Include="..\Tf3Drpc.Core\Tf3Drpc.Core.csproj" />
+    <ProjectReference Include="..\Tf3Drpc.Application\Tf3Drpc.Application.csproj" />
   </ItemGroup>
 
   <!-- NuGets -->

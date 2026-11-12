@@ -9,7 +9,7 @@ not yet released. Stage numbers match the plan, not completion percentages.
 | Stage | Work and owner | Independent reviewer | Prerequisite | Exit gate | Status |
 |---|---|---|---|---|---|
 | **0 — Toolchain and desktop feasibility** | Astra: pinned SDK, Linux build entry point, Core baseline, Avalonia/AOT/resource/tray spike. Qwen: acceptance matrix | Sol (S0), Qwen for the A0-T hide-to-tray follow-up (user-reassigned) | Approved plan | Reproducible build/tests/publish; resources work in native binary; desktop/tray/backend and baseline-distro checks; review findings resolved | **Closed — go, scoped to Arch/niri/XWayland** on 2026-11-10: S0 review plus Qwen's independent hide-to-tray review passed; user selected Arch/niri as the baseline target. Screen-reader, tray-less-desktop, native-Wayland and other-distro checks remain unverified and are Stage 5/6 work, not claims |
-| **1 — Shared application seam** | Astra: extract UI-neutral services, messages and presentation logic; define dispatch/timer/launcher/lifecycle contracts. Qwen: regression tests | Sol | Stage 0 go decision | Behaviour-preserving extraction; no new warnings; Core/application tests and Windows/macOS publish checks | Not started |
+| **1 — Shared application seam** | Astra: extract UI-neutral services, messages and presentation logic; define dispatch/timer/launcher/lifecycle contracts. Qwen: regression tests | Sol | Stage 0 go decision | Behaviour-preserving extraction; no new warnings; Core/application tests and Linux publish checks; native Windows/macOS validation excluded by user, remains unverified | In progress — A1.1–A1.3 independently reviewed and integrated; presentation and platform contracts remain |
 | **2 — Discord IPC** | Astra: candidate discovery, explicit selection, handshake failover, deadlines and diagnostics. Qwen: synthetic socket fixtures/tests in assigned files | Sol | Stage 1 contracts | Bad early endpoints cannot mask healthy ones; cancellation and routing tests; no automatic live socket access | Not started |
 | **3 — Linux game integration** | Sol: Steam roots/VDF/manifests, secondary libraries, native process identity, overrides and Proton handling. Qwen: assigned path/process fixtures | Astra | Stage 1 contracts; can run alongside Stage 2 | Native game and secondary-library session verified; stale/racy process/log tests; actual Proton check before claiming Proton support | Not started |
 | **4 — Desktop feature parity** | Sol initially owns the whole Avalonia UI; Astra owns shared integration contracts. Qwen: bounded UI/view-model regression coverage | Astra reviews Sol; Sol reviews Astra's integration | Stages 2 and 3 integrated | Settings/preview/languages/theme/templates/tray/single instance/exit work; no inaccessible hidden window; portability retained | Not started |
@@ -283,6 +283,139 @@ on niri. Screen-reader access was not tested (none configured); a genuine tray-l
 desktop and native Wayland were not tested. The user selected Arch/niri as the immediate
 validation target rather than Ubuntu; no other distro support is inferred and the
 Stage 0 gate is not closed by this narrower local evidence.
+
+## A1.1 — shared presence seam
+
+The user authorised beginning Stage 1 implementation after Stage 0 closure. Astra
+(active model checked) started from clean `899c64e` in the primary checkout; worker
+checkouts and historical bootstrap manifests were not changed. Scope and contracts:
+[handoff](agent-handoffs/astra-stage1.md).
+
+The first increment adds `Tf3Drpc.Application` and `Tf3Drpc.Application.Tests` to both
+solutions. The existing PresenceService and its three settings/translation/presence
+interfaces move to the shared project; method bodies and signatures are unchanged,
+with visibility widened for host access. MAUI references the project and uses global
+aliases, with explicit MAUI Application qualifications to avoid the sibling namespace
+collision. No Linux host composition or game/Discord access was added.
+
+Validation against the uncommitted A1.1 snapshot above `899c64e`:
+
+- `./tools/linux-dotnet.sh build TF3-DRPC.Linux.slnx -c Debug` and `-c Release`:
+  passed, 0 warnings/errors after correcting test expression-body formatting.
+- `./tools/linux-dotnet.sh test --project Tf3Drpc.Core.Tests/Tf3Drpc.Core.Tests.csproj`
+  with `-c Debug --no-build` and `-c Release --no-build`: each 650 passed, 3 known
+  skips, 0 failed (real translation file, Windows locking, opt-in live Discord).
+- Equivalent commands for `Tf3Drpc.Application.Tests/Tf3Drpc.Application.Tests.csproj`:
+  each 3 passed, 0 failed. Synthetic dependencies cover preview/current settings/time,
+  invalid-preset fallback and null inputs; no sockets or filesystem settings are used.
+- `./tools/linux-dotnet.sh publish Tf3Drpc.Linux/Tf3Drpc.Linux.csproj -c Release -r linux-x64`:
+  passed without reported warnings; published `--check-resources` passed all 13 languages.
+  This is a feasibility-host regression check, not native execution of the extracted service.
+- `git diff --check`: passed. Raw logs remain ignored under `.agent-state/stage1/`.
+
+Outstanding: Sol's independent review, further application regression coverage, native
+Windows/macOS builds/publishes and extracted-service AOT execution. This is only the first
+Stage 1 increment. Settings/messages, monitor orchestration, view-model logic and
+platform dispatch/timer/launcher/lifecycle contracts still need extraction. Stages 2/3
+are not yet unblocked. No commits, pushes, live Discord tests or game launches were made.
+
+## A1.1 integration and A1.2 settings extraction
+
+The user authorised integration and continued Stage 1 work after reviewing
+[Astra's review](../reviews/linux/stage-1/astra-a1-review.md). Native Windows/macOS
+validation is explicitly out of scope for this work: it remains unverified, not a local
+integration blocker. This supersedes the native-check gate in the original A1.1 handoff;
+it does not certify those platforms or remove future release validation.
+
+Astra integrated only the reviewed Qwen regression test, its handoff and report, and
+Sol's review report. The old MainMenu test was renamed to describe its actual coverage;
+task-specific comments in the new test were removed. Worker files were not changed.
+The independent three-mutation results are recorded in Astra's review. A1-T1 is now
+closed in the primary source tree. A1.1 is accepted within the revised validation scope.
+
+[A1.2 handoff](agent-handoffs/astra-stage1-settings.md) bounds the next increment:
+SettingsService and SettingsChangedMessage move into Application with source-generated
+logging and the already pinned CommunityToolkit.Mvvm dependency. A narrow ISettingsPaths
+contract is implemented by the existing MAUI path service; DI registers the same instance
+under both interfaces. Settings schema, save/retry behaviour and message delivery are
+unchanged. The monitor loop and other messages remain in MAUI for the next increment.
+
+Validation ran in the primary checkout against the uncommitted A1.1 + A1.2 snapshot above
+`899c64e`, including the integrated Qwen tests:
+
+- Debug/Release Linux solution builds: exit 0, zero warnings/errors.
+- Core tests in each configuration: 650 passed, 3 known skips, zero failures.
+- Application tests in each configuration: 10 passed, zero failures. Four new settings
+  tests cover writes/notifications, unchanged-value suppression, normalisation, invalid
+  language rejection, memory retained on failure, failed-write retry and writable recovery.
+- Linux Native AOT publish: exit 0, no reported warnings; published resource check passed
+  all 13 languages. This still does not execute Application in native code.
+- The first Debug build exposed an inaccessible private test recipient in the messenger
+  generator; making that fixture type internal resolved it without suppressions.
+- Logs stay ignored under `.agent-state/stage1-settings/`. No game, live Discord, GUI
+  smoke or native Windows/macOS checks ran. No commits or pushes were made.
+
+A1.2 is ready for independent Sol review, not self-approved. Qwen may add bounded
+settings edge-case coverage in a new test file under a separate handoff. Full Stage 1
+and Stages 2/3 remain gated on the remaining shared orchestration/presentation contracts.
+
+## A1.2 integration and A1.3 monitor extraction
+
+The user authorised integrating [Sol's A1.2 review](../reviews/linux/stage-1/sol-a12-review.md)
+and proceeding. Astra verified that all A1.2 author-snapshot checksums still matched,
+then copied only the review report into the primary tree. Sol found no correctness issues
+and independently reproduced Debug/Release builds, Core/Application tests, Linux AOT and
+resources, plus three mutation checks. A1.2 is accepted within the agreed scope;
+Windows/macOS remains explicitly unverified and out of scope.
+
+[A1.3 handoff](agent-handoffs/astra-stage1-monitor.md) moves the existing single monitor
+loop, its public interface, status message, generated error log and one-second interval
+into Application. The constructor now accepts Core's six existing source/sink interfaces;
+MAUI's explicit singleton factory supplies the same host services as before. Loop method
+bodies and sequential lifecycle behaviour are otherwise unchanged. No new loop, socket
+access or filesystem discovery was introduced. The host still owns Discord disposal
+and activity clearing after stopping the loop; concurrent Start/Stop is not a new promise.
+
+Validation in the primary checkout against uncommitted A1.1 + A1.2 + A1.3 above `899c64e`:
+
+- Debug/Release Linux solution builds: exit 0, zero warnings/errors.
+- Core tests per configuration: 650 passed, 3 known skips, zero failures.
+- Application tests per configuration: 13 passed, zero failures. Three new tests use a
+  manually fired TimeProvider timer and synthetic dependencies only: immediate/periodic
+  ticks, duplicate Start, one-second cadence, Stop/restart, receiver exception containment,
+  cancellation while a tick is held, awaiting its completion and host-owned sink disposal.
+- Linux Native AOT publish: exit 0, no reported warnings; native resource check passed
+  all 13 languages. Application native execution is still not exercised by this host.
+- Initial test-only analyser findings were fixed (test cancellation, asynchronous
+  registration disposal and empty-body formatting); no suppressions added.
+- Raw logs remain ignored in `.agent-state/stage1-monitor/`. No native Windows/macOS,
+  desktop, game or live Discord validation ran. No commits or pushes were made.
+
+A1.3 is ready for independent Sol review, not self-approved. Qwen was not dispatched:
+the bounded lifecycle tests ran locally without needing additional test ownership.
+Remaining Stage 1 work includes presentation extraction and dispatcher/debounce/launcher/
+exit contracts. Stages 2/3 remain gated on those agreed contracts.
+
+## A1.1–A1.3 reviewed integration
+
+The user authorised Astra to integrate the A1.3 review, commit and push the reviewed
+increments. [Sol's A1.3 review](../reviews/linux/stage-1/sol-a13-review.md) passed with no
+correctness findings. Astra verified both the author manifest and Sol's full review-source
+manifest against the current primary sources before copying the named report; worker
+checkouts remain unchanged. A1.1–A1.3 are accepted within the agreed validation scope.
+
+Final integration checks in the primary checkout above `899c64e`: Debug/Release Linux
+solution builds each passed with zero warnings/errors; Core tests each passed 650 with
+3 known skips; Application tests each passed all 13; Linux Native AOT publish passed
+without reported warnings and the native resource check passed all 13 languages. Raw
+logs remain ignored under `.agent-state/stage1-integration/`.
+
+This integration does not close Stage 1 or unblock Stages 2/3. Presentation logic and
+platform dispatch/debounce/launcher/exit contracts remain. Windows/macOS validation is
+out of scope and unverified; extracted-service native execution, GUI/game behaviour and
+live Discord remain unverified. The existing Linux host is still a feasibility host.
+The authorised commit/push targets `linux/astra-stage0` on the fork's `origin`; it does
+not authorise merging, releasing or changing worker branches.
 
 ## Task report template
 

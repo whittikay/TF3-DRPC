@@ -4,12 +4,12 @@ using Tf3Drpc.Core.Monitor;
 using Tf3Drpc.Core.Settings;
 using Tf3Drpc.Core.Structs;
 
-namespace Tf3Drpc.App.Services.Interfaces;
+namespace Tf3Drpc.Application.Services.Interfaces;
 
 /// <summary>
 /// Builds the Discord presence from the game state.
 /// </summary>
-internal interface IPresenceService : IPresenceBuilder
+public interface IPresenceService : IPresenceBuilder
 {
     /// <summary>
     /// Builds a preview of the presence while playing, from the last status seen or from example values.
